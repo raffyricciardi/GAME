@@ -219,7 +219,7 @@
       storyBox.innerHTML = "⏳ <i>L'IA sta generando l'incipit della tua avventura...</i>";
       choicesBox.innerHTML = "";
 
-      const prompt = `Crea un'introduzione per un RPG nell'ambientazione '${currentWorld}'. Rispondi SOLO ed ESCLUSIVAMENTE in formato JSON valido senza markup markdown con questa struttura: {"story": "testo della storia", "choices": ["Opzione 1", "Opzione 2", "Opzione 3"]}`;
+      const prompt = `Crea un'introduzione RPG nell'ambientazione '${currentWorld}'. Rispondi SOLO in formato JSON valido: {"story": "testo della storia", "choices": ["Opzione 1", "Opzione 2", "Opzione 3"]}`;
       await callGemini(prompt);
     }
 
@@ -230,7 +230,7 @@
       storyBox.innerHTML = "⏳ <i>L'IA sta calcolando le conseguenze...</i>";
       choicesBox.innerHTML = "";
 
-      const prompt = `Contesto: "${previousContext}". Scelta giocatore: "${choiceText}". Continua la storia. Rispondi SOLO in JSON: {"story": "conseguenze e continuazione", "choices": ["Opzione 1", "Opzione 2", "Opzione 3"]}`;
+      const prompt = `Contesto: "${previousContext}". Scelta giocatore: "${choiceText}". Continua la storia. Rispondi SOLO in JSON valido: {"story": "conseguenze", "choices": ["Opzione 1", "Opzione 2", "Opzione 3"]}`;
       await callGemini(prompt);
     }
 
@@ -243,7 +243,8 @@
       };
 
       try {
-        const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${API_KEY}`, {
+        // Usa l'endpoint universale gemini-pro
+        const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-pro:generateContent?key=${API_KEY}`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify(payload)
@@ -252,13 +253,11 @@
         const data = await response.json();
 
         if (data.error) {
-          storyBox.innerHTML = `<span style='color: var(--accent-red);'>⚠️ Errore API (${data.error.code}): ${data.error.message}</span>`;
+          storyBox.innerHTML = `<span style='color: var(--accent-red);'>⚠️ Errore API: ${data.error.message}</span>`;
           return;
         }
 
         let rawText = data.candidates[0].content.parts[0].text;
-        
-        // Pulizia automatica nel caso il modello aggiunga tag ```json ... ```
         rawText = rawText.replace(/```json/g, '').replace(/```/g, '').trim();
         
         const parsed = JSON.parse(rawText);
@@ -276,7 +275,7 @@
 
       } catch (err) {
         console.error(err);
-        storyBox.innerHTML = "<span style='color: var(--accent-red);'>❌ Errore nella lettura della risposta dell'IA. Riprova.</span>";
+        storyBox.innerHTML = "<span style='color: var(--accent-red);'>❌ Errore durante il caricamento. Riprova tra un istante.</span>";
       }
     }
   </script>
